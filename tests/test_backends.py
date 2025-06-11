@@ -270,11 +270,52 @@ class BackendRenderingTests(RenderMixin, APITestCase):
             )
         )
 
+        # Add case for Django 5.2
+        assert_html_options.append("""
+        <h2>Field filters</h2>
+        <form class="form" action="" method="get">
+            <ul class="errorlist" id="id_author_error">
+                <li>
+                    Select a valid choice. That choice
+                    is not one of the available choices.
+                </li>
+            </ul>
+            <p>
+                <label for="id_author">Writer:</label>
+                <select aria-describedby="id_author_error" aria-invalid="true" id="id_author" name="author">
+                    <option value="">---------</option>
+                </select>
+            </p>
+
+
+            <fieldset>
+                <legend>Writer</legend>
+
+                <ul class="errorlist" id="id_author__last_login_error">
+                    <li>Enter a valid date.</li>
+                </ul>
+                <p>
+                    <label for="id_author__last_login">Last login:</label>
+                    <input aria-describedby="id_author__last_login_error" aria-invalid="true" id="id_author__last_login"
+                           name="author__last_login"
+                           type="text"
+                           value="invalid" />
+                </p>
+            </fieldset>
+
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+        """)
+
         # Django >5.0 adds aria-invalid="true", but want old Django version to pass as well
         if Version(django.__version__) < Version("5.0"):
             assert_html = assert_html_options[0]
-        else:
+        elif Version(django.__version__) < Version("5.2"):
             assert_html = assert_html_options[1]
+        else:
+            assert_html = assert_html_options[2]
+
+        
 
         context = {"author": "invalid", "author__last_login": "invalid"}
         self.assertHTMLEqual(
